@@ -20,7 +20,7 @@ public:
      * @param key new string key of the bucket
      * @param value new value of the bucket.
      */
-    void load(std::string key, int value)
+    void load(std::string key, size_t value)
     {this->key = key; this->value = value; this->bucketState = BucketType::NORMAL;};
 
     /**
@@ -33,7 +33,7 @@ public:
     void makeEAR();
 
     //getters
-    std::string getKey();
+    std::string getKey() const;
     int getValue() const;
     bool isEmptySinceStart() const;
     bool isEmptyAfterRemove() const;

@@ -3,6 +3,7 @@
  */
 #include <optional>
 #include <string>
+#include "HashTableBucket.h"
 
 class HashTable {
 public:
@@ -27,6 +28,8 @@ public:
 
 private:
     BucketType bucketState;
+    std::vector<HashTableBucket> buckets;
+	std::vector<int> offsets = {4, 5, 2, 9, 1, 8, 7, 3, 6};
 
 
 
