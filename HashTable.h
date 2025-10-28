@@ -27,7 +27,7 @@ public:
     size_t size() const;
 
 private:
-    BucketType bucketState;
+    // BucketType bucketState;
     std::vector<HashTableBucket> buckets;
 	std::vector<int> offsets = {4, 5, 2, 9, 1, 8, 7, 3, 6};
 

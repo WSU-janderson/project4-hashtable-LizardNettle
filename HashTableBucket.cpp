@@ -54,8 +54,15 @@ bool HashTableBucket::isEmptyAfterRemove() const {
     return (bucketState == BucketType::EAR);
 }
 
-bool HashTableBucket::isEmpty() const {
+bool HashTableBucket::isNormal() const {
     return (bucketState == BucketType::NORMAL);
+}
+
+bool HashTableBucket::isEmpty() const {
+	if (isNormal()) {
+		return false;
+	}
+	return true;
 }
 
 std::ostream& operator<<(std::ostream& os, const HashTableBucket& bucket) {

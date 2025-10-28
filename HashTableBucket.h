@@ -37,7 +37,8 @@ public:
     int getValue() const;
     bool isEmptySinceStart() const;
     bool isEmptyAfterRemove() const;
-    bool isEmpty() const;
+    bool isNormal() const;
+	bool isEmpty() const;
 
     friend std::ostream& operator<<(std::ostream& os, const HashTableBucket& bucket);
 
