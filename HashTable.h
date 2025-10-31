@@ -20,6 +20,7 @@ public:
 
     // setters
     bool insert(std::string key, size_t value);
+	void resize();
     bool remove(std::string key);
 
     // getters

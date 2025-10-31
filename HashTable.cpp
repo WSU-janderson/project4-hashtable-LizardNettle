@@ -8,6 +8,7 @@
 #include "HashTable.h"
 #include "HashTableBucket.h"
 #include <iostream>
+#include <ranges>
 
 using namespace std;
 
@@ -72,6 +73,30 @@ bool HashTable::insert(std::string key, size_t value) {
 	}
 	return false;
 }
+
+void HashTable::resize() {
+	size_t newCapacity = capacity() * 2;
+	vector<int> allValues;
+	vector<string> allKeys = keys();
+
+	// get all values
+	for (string key : allKeys) {
+		allValues.push_back(get(key).value());
+	}
+
+	// erase all values in buckets, then create new Buckets,
+	// and then re-insert all key-pair values.
+	buckets.clear();
+	for (int i = 0; i < newCapacity; i++) {
+		HashTableBucket bucket = HashTableBucket();
+		buckets.push_back(bucket);
+	}
+	for (int i = 0; i < allKeys.size(); i++) {
+		insert(allKeys[i], allValues[i]);
+	}
+
+}
+
 /**
  * If the key is in the table, remove will “erase” the key-value pair from the
  * table. This is done by marking the bucket as EAR.
