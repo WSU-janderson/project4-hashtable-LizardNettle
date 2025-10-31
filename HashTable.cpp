@@ -2,10 +2,12 @@
  * HashTable.cpp
  */
 
+#include <cstddef>
 #include <string>
 #include <vector>
 #include "HashTable.h"
 #include "HashTableBucket.h"
+#include <iostream>
 
 using namespace std;
 
@@ -13,28 +15,36 @@ using namespace std;
  * Constructor that takes an initial capacity for the table.
  * If no capacity is given, it defaults to 8 initially.
 */
-HashTable::HashTable(size_t initCapacity) {
+HashTable::HashTable() : HashTable(DEFAULT_INITIAL_CAPACITY){} HashTable::HashTable(size_t initCapacity) {
 	// insert (initCapacity) number of HashTableBucket's
-	buckets.resize(initCapacity);
-
 	for (int i = 0; i < initCapacity; i++) {
  		HashTableBucket bucket = HashTableBucket();
 		buckets.push_back(bucket);
- }
-
+	}
 }
+
 /**
- * Insert a new key-value pair into the table. Duplicate keys are NOT allowed. The
- * method should return true if the insertion was successful, otherwise returns false.
- * unsuccessful, such as whened behavior.
- *
- * Does not address attempts to access keys not
- * in the table.
+ * The bracket operator lets us access values in the map using a familiar syntax,
+ * similar to C++ std::map or Python dictionaries. It behaves like get, returnin
+ * the value associated with a given key:
+   int idNum = hashTable[“James”];
+ * Unlike get, however, the bracker operator returns a reference to the value,
+ * which allows assignment:
+   hashTable[“James”] = 1234;
+   If the key is not
+ * in the table, returning a valid reference is impossible. Does not address
+ * attempts to access keys not in table.
 */
 int& HashTable::operator[](const string& key) {
 	// TODO: need to check notes on how operator[] works.
-	// may be able to make it just call insert(key, value) ? Unsure.
+
 }
+
+std::ostream& operator<<(std::ostream& os, const HashTable& hashTable) {
+	cout << "placeholder" << endl;
+	return os;
+}
+
 /**
  * Insert a new key-value pair into the table. Duplicate keys are NOT allowed.
  * @return returns true if the insertion was successful, and false otherwise.
@@ -46,7 +56,7 @@ bool HashTable::insert(std::string key, size_t value) {
 	// generate hash, then try to place key-value pair at the home position
 	// else, start probing.
 	hash<string> hash;
-	int home = hash(key) % size();
+	size_t home = hash(key) % buckets.size();
 
 	if (buckets[home].isEmpty()) {
 		buckets[home].load(key, value);
@@ -105,6 +115,7 @@ std::optional<int> HashTable::get(const string& key) const {
 			return buckets[i].getValue();
 		}
 	}
+	return std::nullopt;
 }
 
 /**
@@ -132,7 +143,11 @@ std::vector<string> HashTable::keys() const {
  *
  * The time complexity for this method must be O(1).
 */
-double HashTable::alpha() const {}
+double HashTable::alpha() const {
+	double tableSize = static_cast<double>(size());
+	double tableCap = static_cast<double>(capacity());
+	return tableSize / tableCap;
+}
 /**
 * capacity returns how many buckets in total are in the hash table. The time
 * complexity for this algorithm must be O(1).

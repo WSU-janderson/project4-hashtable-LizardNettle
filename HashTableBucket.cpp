@@ -55,7 +55,11 @@ bool HashTableBucket::isEmptyAfterRemove() const {
 }
 
 bool HashTableBucket::isNormal() const {
-    return (bucketState == BucketType::NORMAL);
+	if (bucketState == BucketType::ESS) {
+		return false;
+	}
+	if (bucketState == BucketType::NORMAL) return true;
+	return false;
 }
 
 bool HashTableBucket::isEmpty() const {

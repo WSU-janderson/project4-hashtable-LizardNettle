@@ -3,16 +3,29 @@ project(hashtable)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(HashTableDebug
-        HashTableDebug.cpp
-        HashTable.cpp
-        HashTable.h
-)
+#add_executable(HashTableTests
+#        HashTableTests.cpp
+#        HashTable.cpp
+#        HashTable.h
+#        HashTableBucket.cpp
+#        HashTableBucket.h
+#        HashTableDebug.cpp
+#)
 
-add_executable(HashTableTests
-        HashTableTests.cpp
-        HashTable.cpp
+#add_executable(HashTableDebug
+#        HashTableDebug.cpp
+#        HashTable.h
+#        HashTableBucket.h
+#        HashTable.cpp
+#        HashTableBucket.cpp
+#)
+
+add_executable(MainTest.cpp
         HashTable.h
+        HashTableBucket.h
+        HashTable.cpp
+        HashTableBucket.cpp
+        MainTest.cpp
 )
 
 # Make SequenceDebug the default startup target
