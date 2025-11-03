@@ -68,13 +68,24 @@ bool HashTable::insert(std::string key, size_t value) {
 		int probe = home + offset;
 		if (buckets[probe].isEmpty()) {
 			buckets[probe].load(key, value);
+
+			// resize if necessary before returning
+			if (alpha() >= .50) {
+				resize();
+			}
+
 			return true;
 		}
+	}
+	// resize if necessary before returning.
+	if (alpha() >= .50) {
+		resize();
 	}
 	return false;
 }
 
 void HashTable::resize() {
+	std::cout << "DEBUG: resizing";
 	size_t newCapacity = capacity() * 2;
 	vector<int> allValues;
 	vector<string> allKeys = keys();
@@ -116,9 +127,13 @@ bool HashTable::remove(std::string key) {
  * the table.
 */
 bool HashTable::contains(const string& key) const {
+	// check every bucket in buckets, if matching key is found
+	// return true only if bucket is normal.
 	for (int i = 1; i < buckets.capacity(); i++) {
 		if (buckets[i].getKey() == key) {
-			return true;
+			if (buckets[i].isNormal()) {
+				return true;
+			}
 		}
 	}
 	return false;
@@ -185,7 +200,7 @@ size_t HashTable::capacity() const {
 * time complexity for this method must be O(1)
 */
 size_t HashTable::size() const {
-	// check every bucket in buckets, if bucket.isNormal, tick counter.
+	// check every bucket in buckets, if bucket is normal, tick counter.
 	int counter = 0;
 	for (int i = 0; i < buckets.capacity(); i++) {
 		if (buckets[i].isNormal()) {
