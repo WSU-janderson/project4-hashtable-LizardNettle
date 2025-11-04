@@ -35,6 +35,7 @@ public:
     //getters
     std::string getKey() const;
     int getValue() const;
+	int& getValueRef();
     bool isEmptySinceStart() const;
     bool isEmptyAfterRemove() const;
     bool isNormal() const;

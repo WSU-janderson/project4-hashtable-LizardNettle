@@ -46,6 +46,10 @@ int HashTableBucket::getValue() const {
     return this->value;
 }
 
+int& HashTableBucket::getValueRef() {
+	return this->value;
+}
+
 bool HashTableBucket::isEmptySinceStart() const {
     return (bucketState == BucketType::ESS);
 }

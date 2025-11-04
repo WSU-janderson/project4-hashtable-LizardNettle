@@ -6,9 +6,11 @@
 #include <string>
 #include <vector>
 #include "HashTable.h"
+#include <algorithm>
 #include "HashTableBucket.h"
 #include <iostream>
 #include <ranges>
+#include <random>
 
 using namespace std;
 
@@ -37,12 +39,21 @@ HashTable::HashTable() : HashTable(DEFAULT_INITIAL_CAPACITY){} HashTable::HashTa
  * attempts to access keys not in table.
 */
 int& HashTable::operator[](const string& key) {
-	// TODO: need to check notes on how operator[] works.
-
+	for (auto& bucket : buckets) {
+		if (bucket.isNormal() && bucket.getKey() == key) {
+			return bucket.getValueRef();
+		}
+	}
 }
 
 std::ostream& operator<<(std::ostream& os, const HashTable& hashTable) {
-	cout << "placeholder" << endl;
+	int i = 0;
+	for (HashTableBucket bucket : hashTable.buckets) {
+		i++;
+		if (bucket.isNormal()) {
+			os << "Bucket " << i << ": <" << bucket.getKey() << ", " << bucket.getValue() << ">" << endl;
+		}
+	}
 	return os;
 }
 
@@ -51,6 +62,11 @@ std::ostream& operator<<(std::ostream& os, const HashTable& hashTable) {
  * @return returns true if the insertion was successful, and false otherwise.
 */
 bool HashTable::insert(std::string key, size_t value) {
+	// resize if necessary before inserting
+	if (alpha() >= .50) {
+		resize();
+	}
+
 	if (contains(key)) {
 		return false;
 	}
@@ -65,14 +81,9 @@ bool HashTable::insert(std::string key, size_t value) {
 	}
 	// for all values in offsets, try to see if buckets[home + offset[i]] is free.
 	for (int offset : offsets) {
-		int probe = home + offset;
+		int probe = (home + offset) % buckets.size();
 		if (buckets[probe].isEmpty()) {
 			buckets[probe].load(key, value);
-
-			// resize if necessary before returning
-			if (alpha() >= .50) {
-				resize();
-			}
 
 			return true;
 		}
@@ -85,16 +96,26 @@ bool HashTable::insert(std::string key, size_t value) {
 }
 
 void HashTable::resize() {
-	std::cout << "DEBUG: resizing";
 	size_t newCapacity = capacity() * 2;
-	vector<int> allValues;
-	vector<string> allKeys = keys();
+	vector<int> newOffsets;
 
-	// get all values
-	for (string key : allKeys) {
-		allValues.push_back(get(key).value());
+	// generate new offsets via rng
+	for (int i = 0; i <= newCapacity; i++) {
+		newOffsets.push_back(i);
 	}
 
+	random_device rng;
+	std::shuffle(newOffsets.begin(), newOffsets.end(), rng);
+	offsets = newOffsets;
+
+	// get all
+	vector<int> allValues;
+	vector<string> allKeys = keys();
+	for (HashTableBucket bucket : buckets) {
+		if (bucket.isNormal()) {
+			allValues.push_back(bucket.getValue());
+		}
+	}
 	// erase all values in buckets, then create new Buckets,
 	// and then re-insert all key-pair values.
 	buckets.clear();
@@ -102,10 +123,25 @@ void HashTable::resize() {
 		HashTableBucket bucket = HashTableBucket();
 		buckets.push_back(bucket);
 	}
-	for (int i = 0; i < allKeys.size(); i++) {
-		insert(allKeys[i], allValues[i]);
-	}
 
+	for (int i = 0; i < allKeys.size(); i++) {
+		bool inserted = false;
+		hash<string> hash;
+		size_t home = hash(allKeys[i]) % buckets.size();
+
+		if (buckets[home].isEmpty()) {
+			buckets[home].load(allKeys[i], allValues[i]);
+			inserted = true;
+		}
+		if (!inserted) {
+			for (int offset : offsets) {
+				int probe = (home + offset) % buckets.size();
+				if (buckets[probe].isEmpty()) {
+					buckets[probe].load(allKeys[i], allValues[i]);
+				}
+			}
+		}
+	}
 }
 
 /**
@@ -114,9 +150,10 @@ void HashTable::resize() {
 */
 bool HashTable::remove(std::string key) {
 	// if key is in buckets, makeEAR()
-	for (int i = 1; i < buckets.capacity(); i++) {
-		if (buckets[i].getKey() == key) {
-			buckets[i].makeEAR();
+	for (auto& bucket : buckets) {
+		if (bucket.getKey() == key) {
+			bucket.makeEAR();
+			return true;
 		}
 	}
 	return false;
@@ -129,7 +166,7 @@ bool HashTable::remove(std::string key) {
 bool HashTable::contains(const string& key) const {
 	// check every bucket in buckets, if matching key is found
 	// return true only if bucket is normal.
-	for (int i = 1; i < buckets.capacity(); i++) {
+	for (int i = 1; i < buckets.size(); i++) {
 		if (buckets[i].getKey() == key) {
 			if (buckets[i].isNormal()) {
 				return true;
@@ -149,10 +186,10 @@ bool HashTable::contains(const string& key) const {
  * exception if the key is not found.
 */
 std::optional<int> HashTable::get(const string& key) const {
-	// if key is in buckets, getValue().
-	for (int i = 1; i < buckets.capacity(); i++) {
-		if (buckets[i].getKey() == key) {
-			return buckets[i].getValue();
+	// if key is in buckets and bucket is normal, getValue().
+	for (HashTableBucket bucket : buckets) {
+		if (bucket.isNormal() && bucket.getKey() == key) {
+			return bucket.getValue();
 		}
 	}
 	return std::nullopt;
@@ -165,9 +202,10 @@ std::optional<int> HashTable::get(const string& key) const {
 */
 std::vector<string> HashTable::keys() const {
 	vector<string> allKeys;
+	int size = buckets.size();
 
 	// add the keys of all normal buckets to allKeys.
-	for (int i = 0; i < buckets.capacity(); i++) {
+	for (int i = 0; i < buckets.size(); i++) {
 		if (buckets[i].isNormal()) {
 			allKeys.push_back(buckets[i].getKey());
 		}
@@ -193,7 +231,7 @@ double HashTable::alpha() const {
 * complexity for this algorithm must be O(1).
 */
 size_t HashTable::capacity() const {
-	return buckets.capacity();
+	return buckets.size();
 }
 /**
 * The size method returns how many key-value pairs are in the hash table. The
@@ -202,7 +240,7 @@ size_t HashTable::capacity() const {
 size_t HashTable::size() const {
 	// check every bucket in buckets, if bucket is normal, tick counter.
 	int counter = 0;
-	for (int i = 0; i < buckets.capacity(); i++) {
+	for (int i = 0; i < buckets.size(); i++) {
 		if (buckets[i].isNormal()) {
 			counter++;
 		}
